@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Test Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: 0 auto; }
+        .test-form { margin-top: 20px; }
+        .test-list { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Online Test Management System</h1>
+        
+        <div class="test-form">
+            <h2>Create a Test</h2>
+            <form id="testForm">
+                <label for="title">Test Title:</label>
+                <input type="text" id="title" name="title" required><br><br>
+                
+                <label for="question">Question:</label>
+                <input type="text" id="question" name="question" required><br><br>
+                
+                <label for="options">Options (comma-separated):</label>
+                <input type="text" id="options" name="options" required><br><br>
+                
+                <label for="answer">Answer:</label>
+                <input type="text" id="answer" name="answer" required><br><br>
+                
+                <button type="submit">Submit Test</button>
+            </form>
+        </div>
+        
+        <div class="test-list">
+            <h2>Available Tests</h2>
+            <ul id="testList"></ul>
+        </div>
+    </div>
+    
+    <script>
+        const testForm = document.getElementById('testForm');
+        const testList = document.getElementById('testList');
+
+        testForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const question = document.getElementById('question').value;
+            const options = document.getElementById('options').value.split(',');
+            const answer = document.getElementById('answer').value;
+
+            const response = await fetch('http://localhost:5000/api/tests', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title,
+                    questions: [{
+                        question,
+                        options,
+                        answer
+                    }]
+                })
+            });
+
+            if (response.ok) {
+                alert('Test created successfully!');
+                loadTests();
+            }
+        });
+
+        async function loadTests() {
+            const response = await fetch('http://localhost:5000/api/tests');
+            const tests = await response.json();
+            testList.innerHTML = '';
+
+            tests.forEach(test => {
+                const li = document.createElement('li');
+                li.textContent = `${test.title}: ${test.questions.map(q => q.question).join(', ')}`;
+                testList.appendChild(li);
+            });
+        }
+
+        loadTests();
+    </script>
+</body>
+</html>
